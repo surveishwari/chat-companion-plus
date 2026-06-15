@@ -33,7 +33,7 @@ export function AppHeader() {
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
         <Link to="/chat" className="flex items-center gap-2 text-foreground">
           <MessageCircle className="size-5 text-primary" />
-          <span className="font-semibold tracking-tight">OpenVerb AI</span>
+          <span className="font-semibold tracking-tight">Lumen</span>
         </Link>
         <nav className="flex items-center gap-1">
           {navLink("/chat", <MessageSquare className="size-4" />, "Chat")}
