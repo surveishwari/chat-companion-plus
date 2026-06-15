@@ -11,8 +11,8 @@ import { AppHeader } from "@/components/app-header";
 export const Route = createFileRoute("/_authenticated/chat")({
   head: () => ({
     meta: [
-      { title: "Chat — Lumen" },
-      { name: "description", content: "Chat with Lumen, your AI assistant." },
+      { title: "Chat — OpenVerb AI" },
+      { name: "description", content: "Chat with OpenVerb AI, your AI assistant." },
     ],
   }),
   component: ChatPage,
@@ -71,7 +71,7 @@ function ChatPage() {
                   handleSubmit(e);
                 }
               }}
-              placeholder="Message Lumen…"
+              placeholder="Message OpenVerb AI…"
               rows={1}
               className="min-h-[56px] max-h-48 resize-none border-0 bg-transparent pr-14 py-4 focus-visible:ring-0 shadow-none"
               disabled={isLoading}
@@ -86,7 +86,7 @@ function ChatPage() {
             </Button>
           </div>
           <p className="text-xs text-muted-foreground text-center mt-2">
-            Lumen can make mistakes. Verify important info.
+            OpenVerb AI can make mistakes. Verify important info.
           </p>
         </form>
       </main>
