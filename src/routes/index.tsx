@@ -5,9 +5,9 @@ import { ArrowRight, MessageCircle, Sparkles, Zap, Shield } from "lucide-react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Lumen — AI chat, simplified" },
+      { title: "OpenVerb AI — AI chat, simplified" },
       { name: "description", content: "A clean, fast AI assistant for everyday work. Sign up free." },
-      { property: "og:title", content: "Lumen — AI chat, simplified" },
+      { property: "og:title", content: "OpenVerb AI — AI chat, simplified" },
       { property: "og:description", content: "A clean, fast AI assistant for everyday work." },
     ],
   }),
@@ -21,7 +21,7 @@ function Landing() {
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 text-foreground">
             <MessageCircle className="size-5 text-primary" />
-            <span className="font-semibold tracking-tight">Lumen</span>
+            <span className="font-semibold tracking-tight">OpenVerb AI</span>
           </Link>
           <div className="flex items-center gap-2">
             <Link to="/auth">

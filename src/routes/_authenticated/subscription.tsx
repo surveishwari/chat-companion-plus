@@ -8,8 +8,8 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_authenticated/subscription")({
   head: () => ({
     meta: [
-      { title: "Subscription — Lumen" },
-      { name: "description", content: "Choose your Lumen plan." },
+      { title: "Subscription — OpenVerb AI" },
+      { name: "description", content: "Choose your OpenVerb AI plan." },
     ],
   }),
   component: SubscriptionPage,
@@ -20,7 +20,7 @@ const plans = [
     name: "Free",
     price: "$0",
     period: "/forever",
-    description: "Get started and explore Lumen.",
+    description: "Get started and explore OpenVerb AI.",
     features: ["30 messages per day", "Standard model", "Chat history (7 days)"],
     cta: "Current plan",
     highlight: false,

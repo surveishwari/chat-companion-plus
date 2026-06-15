@@ -11,7 +11,7 @@ import { MessageCircle } from "lucide-react";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — Lumen Chat" },
+      { title: "Sign in — OpenVerb AI Chat" },
       { name: "description", content: "Sign in or create an account to start chatting." },
     ],
   }),
@@ -61,14 +61,14 @@ function AuthPage() {
     <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-secondary/30">
       <Link to="/" className="flex items-center gap-2 mb-8 text-foreground">
         <MessageCircle className="size-6 text-primary" />
-        <span className="font-semibold text-lg tracking-tight">Lumen</span>
+        <span className="font-semibold text-lg tracking-tight">OpenVerb AI</span>
       </Link>
       <Card className="w-full max-w-md p-8 shadow-sm border-border/60">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">
           {mode === "signin" ? "Welcome back" : "Create your account"}
         </h1>
         <p className="text-sm text-muted-foreground mt-1.5">
-          {mode === "signin" ? "Sign in to continue to Lumen." : "Start chatting in seconds."}
+          {mode === "signin" ? "Sign in to continue to OpenVerb AI." : "Start chatting in seconds."}
         </p>
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div className="space-y-1.5">
