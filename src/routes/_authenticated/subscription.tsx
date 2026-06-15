@@ -1,9 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Check } from "lucide-react";
+import { createFileRoute, useSearch } from "@tanstack/react-router";
+import { Check, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { AppHeader } from "@/components/app-header";
 import { toast } from "sonner";
+import { createCheckoutSession } from "@/lib/stripe.functions";
 
 export const Route = createFileRoute("/_authenticated/subscription")({
   head: () => ({
@@ -11,6 +14,9 @@ export const Route = createFileRoute("/_authenticated/subscription")({
       { title: "Subscription — OpenVerb AI" },
       { name: "description", content: "Choose your OpenVerb AI plan." },
     ],
+  }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    status: (s.status as "success" | "canceled" | undefined) ?? undefined,
   }),
   component: SubscriptionPage,
 });
@@ -43,9 +49,25 @@ const plans = [
 ];
 
 function SubscriptionPage() {
-  function handleUpgrade(plan: string) {
+  const { status } = useSearch({ from: "/_authenticated/subscription" });
+  const checkout = useServerFn(createCheckoutSession);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (status === "success") toast.success("Subscription active — welcome to Pro!");
+    if (status === "canceled") toast.info("Checkout canceled.");
+  }, [status]);
+
+  async function handleUpgrade(plan: string) {
     if (plan === "Free") return;
-    toast.info("Stripe checkout coming soon — payments not yet enabled.");
+    setLoading(true);
+    try {
+      const { url } = await checkout();
+      window.location.href = url;
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not start checkout.");
+      setLoading(false);
+    }
   }
 
   return (
@@ -87,9 +109,16 @@ function SubscriptionPage() {
                 onClick={() => handleUpgrade(plan.name)}
                 variant={plan.highlight ? "default" : "outline"}
                 className="w-full mt-6"
-                disabled={plan.name === "Free"}
+                disabled={plan.name === "Free" || (plan.highlight && loading)}
               >
-                {plan.cta}
+                {plan.highlight && loading ? (
+                  <>
+                    <Loader2 className="size-4 mr-2 animate-spin" />
+                    Redirecting…
+                  </>
+                ) : (
+                  plan.cta
+                )}
               </Button>
               <ul className="mt-6 space-y-3">
                 {plan.features.map((f) => (
@@ -102,6 +131,9 @@ function SubscriptionPage() {
             </Card>
           ))}
         </div>
+        <p className="text-center text-xs text-muted-foreground mt-8">
+          Stripe is in test mode. Use card 4242 4242 4242 4242, any future expiry, any CVC.
+        </p>
       </main>
     </div>
   );
