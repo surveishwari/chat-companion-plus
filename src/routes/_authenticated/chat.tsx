@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { ArrowUp, Loader2, MessageCircle } from "lucide-react";
+import { ArrowUp, Loader2, MessageCircle, Volume2, Square } from "lucide-react";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/app-header";
 import { VoiceInputButton } from "@/components/voice-input-button";
+import { useTextToSpeech } from "@/hooks/use-text-to-speech";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/chat")({
   head: () => ({
@@ -29,12 +31,34 @@ function ChatPage() {
   });
   const [input, setInput] = useState("");
   const [autoSend, setAutoSend] = useState(false);
+  const [voiceMode, setVoiceMode] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isLoading = status === "submitted" || status === "streaming";
+  const tts = useTextToSpeech();
+  const lastSpokenIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    if (!voiceMode || !tts.supported || isLoading) return;
+    const last = messages[messages.length - 1];
+    if (!last || last.role !== "assistant") return;
+    if (lastSpokenIdRef.current === last.id) return;
+    const text = last.parts
+      .map((p) => (p.type === "text" ? p.text : ""))
+      .join("")
+      .trim();
+    if (!text) return;
+    lastSpokenIdRef.current = last.id;
+    tts.speak(text, { id: last.id });
+  }, [voiceMode, tts, messages, isLoading]);
+
+  useEffect(() => {
+    if (!voiceMode) tts.stop();
+     
+  }, [voiceMode, tts]);
 
   const submitText = useCallback(
     async (text: string) => {
@@ -70,7 +94,17 @@ function ChatPage() {
           {messages.length === 0 ? (
             <EmptyState />
           ) : (
-            messages.map((m) => <Message key={m.id} message={m} />)
+            messages.map((m) => (
+              <Message
+                key={m.id}
+                message={m}
+                isSpeaking={tts.speakingId === m.id}
+                ttsSupported={tts.supported}
+                onToggleSpeak={(text) =>
+                  tts.toggle(text, { id: m.id })
+                }
+              />
+            ))
           )}
           {status === "submitted" && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -114,19 +148,35 @@ function ChatPage() {
               </Button>
             </div>
           </div>
-          <div className="flex items-center justify-between mt-2 px-1">
-            <div className="flex items-center gap-2">
-              <Switch
-                id="auto-send"
-                checked={autoSend}
-                onCheckedChange={setAutoSend}
-              />
-              <Label
-                htmlFor="auto-send"
-                className="text-xs text-muted-foreground cursor-pointer"
-              >
-                Auto-send voice
-              </Label>
+          <div className="flex flex-wrap items-center justify-between gap-2 mt-2 px-1">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="auto-send"
+                  checked={autoSend}
+                  onCheckedChange={setAutoSend}
+                />
+                <Label
+                  htmlFor="auto-send"
+                  className="text-xs text-muted-foreground cursor-pointer"
+                >
+                  Auto-send voice
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="voice-mode"
+                  checked={voiceMode}
+                  onCheckedChange={setVoiceMode}
+                  disabled={!tts.supported}
+                />
+                <Label
+                  htmlFor="voice-mode"
+                  className="text-xs text-muted-foreground cursor-pointer"
+                >
+                  Voice mode
+                </Label>
+              </div>
             </div>
             <p className="text-xs text-muted-foreground">
               OpenVerb AI can make mistakes. Verify important info.
@@ -154,7 +204,14 @@ function EmptyState() {
   );
 }
 
-function Message({ message }: { message: UIMessage }) {
+type MessageProps = {
+  message: UIMessage;
+  isSpeaking: boolean;
+  ttsSupported: boolean;
+  onToggleSpeak: (text: string) => void;
+};
+
+function Message({ message, isSpeaking, ttsSupported, onToggleSpeak }: MessageProps) {
   const text = message.parts
     .map((p) => (p.type === "text" ? p.text : ""))
     .join("");
@@ -168,12 +225,41 @@ function Message({ message }: { message: UIMessage }) {
     );
   }
   return (
-    <div className="flex gap-3">
+    <div
+      className={cn(
+        "flex gap-3 rounded-xl -mx-2 px-2 py-1 transition-colors",
+        isSpeaking && "bg-primary/5 ring-1 ring-primary/20",
+      )}
+    >
       <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
         <MessageCircle className="size-4 text-primary" />
       </div>
-      <div className="flex-1 text-sm leading-relaxed text-foreground whitespace-pre-wrap pt-1">
-        {text}
+      <div className="flex-1 min-w-0">
+        <div className="text-sm leading-relaxed text-foreground whitespace-pre-wrap pt-1">
+          {text}
+        </div>
+        {ttsSupported && text.trim() && (
+          <div className="mt-1.5">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => onToggleSpeak(text)}
+              aria-label={isSpeaking ? "Stop speaking" : "Read aloud"}
+              className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+            >
+              {isSpeaking ? (
+                <>
+                  <Square className="size-3 fill-current mr-1" /> Stop
+                </>
+              ) : (
+                <>
+                  <Volume2 className="size-3 mr-1" /> Read aloud
+                </>
+              )}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
