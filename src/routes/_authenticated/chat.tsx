@@ -31,12 +31,34 @@ function ChatPage() {
   });
   const [input, setInput] = useState("");
   const [autoSend, setAutoSend] = useState(false);
+  const [voiceMode, setVoiceMode] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isLoading = status === "submitted" || status === "streaming";
+  const tts = useTextToSpeech();
+  const lastSpokenIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    if (!voiceMode || !tts.supported || isLoading) return;
+    const last = messages[messages.length - 1];
+    if (!last || last.role !== "assistant") return;
+    if (lastSpokenIdRef.current === last.id) return;
+    const text = last.parts
+      .map((p) => (p.type === "text" ? p.text : ""))
+      .join("")
+      .trim();
+    if (!text) return;
+    lastSpokenIdRef.current = last.id;
+    tts.speak(text, { id: last.id });
+  }, [voiceMode, tts, messages, isLoading]);
+
+  useEffect(() => {
+    if (!voiceMode) tts.stop();
+     
+  }, [voiceMode, tts]);
 
   const submitText = useCallback(
     async (text: string) => {
