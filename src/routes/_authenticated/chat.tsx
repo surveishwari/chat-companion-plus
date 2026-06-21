@@ -148,19 +148,35 @@ function ChatPage() {
               </Button>
             </div>
           </div>
-          <div className="flex items-center justify-between mt-2 px-1">
-            <div className="flex items-center gap-2">
-              <Switch
-                id="auto-send"
-                checked={autoSend}
-                onCheckedChange={setAutoSend}
-              />
-              <Label
-                htmlFor="auto-send"
-                className="text-xs text-muted-foreground cursor-pointer"
-              >
-                Auto-send voice
-              </Label>
+          <div className="flex flex-wrap items-center justify-between gap-2 mt-2 px-1">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="auto-send"
+                  checked={autoSend}
+                  onCheckedChange={setAutoSend}
+                />
+                <Label
+                  htmlFor="auto-send"
+                  className="text-xs text-muted-foreground cursor-pointer"
+                >
+                  Auto-send voice
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="voice-mode"
+                  checked={voiceMode}
+                  onCheckedChange={setVoiceMode}
+                  disabled={!tts.supported}
+                />
+                <Label
+                  htmlFor="voice-mode"
+                  className="text-xs text-muted-foreground cursor-pointer"
+                >
+                  Voice mode
+                </Label>
+              </div>
             </div>
             <p className="text-xs text-muted-foreground">
               OpenVerb AI can make mistakes. Verify important info.
