@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { ArrowUp, Loader2, MessageCircle } from "lucide-react";
+import { ArrowUp, Loader2, MessageCircle, Volume2, Square } from "lucide-react";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/app-header";
 import { VoiceInputButton } from "@/components/voice-input-button";
+import { useTextToSpeech } from "@/hooks/use-text-to-speech";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/chat")({
   head: () => ({
