@@ -204,7 +204,14 @@ function EmptyState() {
   );
 }
 
-function Message({ message }: { message: UIMessage }) {
+type MessageProps = {
+  message: UIMessage;
+  isSpeaking: boolean;
+  ttsSupported: boolean;
+  onToggleSpeak: (text: string) => void;
+};
+
+function Message({ message, isSpeaking, ttsSupported, onToggleSpeak }: MessageProps) {
   const text = message.parts
     .map((p) => (p.type === "text" ? p.text : ""))
     .join("");
@@ -218,12 +225,41 @@ function Message({ message }: { message: UIMessage }) {
     );
   }
   return (
-    <div className="flex gap-3">
+    <div
+      className={cn(
+        "flex gap-3 rounded-xl -mx-2 px-2 py-1 transition-colors",
+        isSpeaking && "bg-primary/5 ring-1 ring-primary/20",
+      )}
+    >
       <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
         <MessageCircle className="size-4 text-primary" />
       </div>
-      <div className="flex-1 text-sm leading-relaxed text-foreground whitespace-pre-wrap pt-1">
-        {text}
+      <div className="flex-1 min-w-0">
+        <div className="text-sm leading-relaxed text-foreground whitespace-pre-wrap pt-1">
+          {text}
+        </div>
+        {ttsSupported && text.trim() && (
+          <div className="mt-1.5">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => onToggleSpeak(text)}
+              aria-label={isSpeaking ? "Stop speaking" : "Read aloud"}
+              className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+            >
+              {isSpeaking ? (
+                <>
+                  <Square className="size-3 fill-current mr-1" /> Stop
+                </>
+              ) : (
+                <>
+                  <Volume2 className="size-3 mr-1" /> Read aloud
+                </>
+              )}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
