@@ -94,7 +94,17 @@ function ChatPage() {
           {messages.length === 0 ? (
             <EmptyState />
           ) : (
-            messages.map((m) => <Message key={m.id} message={m} />)
+            messages.map((m) => (
+              <Message
+                key={m.id}
+                message={m}
+                isSpeaking={tts.speakingId === m.id}
+                ttsSupported={tts.supported}
+                onToggleSpeak={(text) =>
+                  tts.toggle(text, { id: m.id })
+                }
+              />
+            ))
           )}
           {status === "submitted" && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
