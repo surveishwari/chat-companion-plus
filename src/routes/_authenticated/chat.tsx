@@ -1,12 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { ArrowUp, Loader2, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/app-header";
+import { VoiceInputButton } from "@/components/voice-input-button";
 
 export const Route = createFileRoute("/_authenticated/chat")({
   head: () => ({
@@ -25,6 +28,7 @@ function ChatPage() {
     onError: (err) => toast.error(err.message || "Chat failed"),
   });
   const [input, setInput] = useState("");
+  const [autoSend, setAutoSend] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isLoading = status === "submitted" || status === "streaming";
 
@@ -32,13 +36,31 @@ function ChatPage() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
+  const submitText = useCallback(
+    async (text: string) => {
+      const trimmed = text.trim();
+      if (!trimmed || isLoading) return;
+      setInput("");
+      await sendMessage({ text: trimmed });
+    },
+    [isLoading, sendMessage],
+  );
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
-    const text = input.trim();
-    setInput("");
-    await sendMessage({ text });
+    await submitText(input);
   }
+
+  const handleTranscript = useCallback(
+    (text: string, shouldAutoSend: boolean) => {
+      if (shouldAutoSend && !isLoading) {
+        void submitText(text);
+        return;
+      }
+      setInput((prev) => (prev ? `${prev} ${text}` : text));
+    },
+    [isLoading, submitText],
+  );
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -73,21 +95,43 @@ function ChatPage() {
               }}
               placeholder="Message OpenVerb AI…"
               rows={1}
-              className="min-h-[56px] max-h-48 resize-none border-0 bg-transparent pr-14 py-4 focus-visible:ring-0 shadow-none"
+              className="min-h-[56px] max-h-48 resize-none border-0 bg-transparent pr-24 py-4 focus-visible:ring-0 shadow-none"
               disabled={isLoading}
             />
-            <Button
-              type="submit"
-              size="icon"
-              disabled={!input.trim() || isLoading}
-              className="absolute right-2 bottom-2 size-9 rounded-full"
-            >
-              <ArrowUp className="size-4" />
-            </Button>
+            <div className="absolute right-2 bottom-2 flex items-center gap-1">
+              <VoiceInputButton
+                onTranscript={handleTranscript}
+                autoSend={autoSend}
+                disabled={isLoading}
+              />
+              <Button
+                type="submit"
+                size="icon"
+                disabled={!input.trim() || isLoading}
+                className="size-9 rounded-full"
+              >
+                <ArrowUp className="size-4" />
+              </Button>
+            </div>
           </div>
-          <p className="text-xs text-muted-foreground text-center mt-2">
-            OpenVerb AI can make mistakes. Verify important info.
-          </p>
+          <div className="flex items-center justify-between mt-2 px-1">
+            <div className="flex items-center gap-2">
+              <Switch
+                id="auto-send"
+                checked={autoSend}
+                onCheckedChange={setAutoSend}
+              />
+              <Label
+                htmlFor="auto-send"
+                className="text-xs text-muted-foreground cursor-pointer"
+              >
+                Auto-send voice
+              </Label>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              OpenVerb AI can make mistakes. Verify important info.
+            </p>
+          </div>
         </form>
       </main>
     </div>
